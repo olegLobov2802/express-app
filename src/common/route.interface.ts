@@ -4,7 +4,7 @@ export type Method = 'get' | 'post' | 'put' | 'delete' | 'patch';
 
 export interface IControllerRoute {
   path: string;
-  cb: (req: Request, res: Response, next: NextFunction) => void;
+  cb: (req: Request, res: Response, next: NextFunction) => void | Promise<void>;
   method: keyof Pick<Router, Method>;
 }
 
