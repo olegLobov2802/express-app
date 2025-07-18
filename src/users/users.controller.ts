@@ -3,6 +3,7 @@ import { inject, injectable } from 'inversify';
 
 import { BaseController } from '../common/base.controller';
 import { ValidateMiddleware } from '../common/validate.middleware';
+import { IConfigService } from '../config/config.service.interface';
 import { HttpError } from '../errors/http-error.class';
 import { ILogger } from '../logger/loger.interface';
 import { TYPES } from '../types';
@@ -15,8 +16,9 @@ import { IUserService } from './user.service.interface';
 @injectable()
 export class UserController extends BaseController implements IUserController {
   constructor(
-    @inject(TYPES.ILogger) private loggerService: ILogger,
-    @inject(TYPES.IUserService) private userService: IUserService,
+    @inject(TYPES.Logger) private loggerService: ILogger,
+    @inject(TYPES.UserService) private userService: IUserService,
+    @inject(TYPES.ConfigService) private configeService: IConfigService,
   ) {
     super(loggerService);
 

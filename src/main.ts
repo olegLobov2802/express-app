@@ -5,6 +5,8 @@ import {
 } from 'inversify';
 
 import { App } from './app';
+import { ConfigService } from './config/config.service';
+import { IConfigService } from './config/config.service.interface';
 import { ExeptionFilter } from './errors/exeption.filter';
 import { IExeptionFilter } from './errors/exeption.filter.interface';
 import { ILogger } from './logger/loger.interface';
@@ -22,10 +24,23 @@ export interface IBootstrapReturn {
 
 const appBindings = new ContainerModule(
   (options: ContainerModuleLoadOptions) => {
-    options.bind<ILogger>(TYPES.ILogger).to(LoggerService);
-    options.bind<IExeptionFilter>(TYPES.IExeptionFilter).to(ExeptionFilter);
-    options.bind<IUserController>(TYPES.IUserController).to(UserController);
-    options.bind<IUserService>(TYPES.IUserService).to(UserService);
+    options.bind<ILogger>(TYPES.Logger).to(LoggerService).inSingletonScope();
+    options
+      .bind<IExeptionFilter>(TYPES.ExeptionFilter)
+      .to(ExeptionFilter)
+      .inSingletonScope();
+    options
+      .bind<IUserController>(TYPES.UserController)
+      .to(UserController)
+      .inSingletonScope();
+    options
+      .bind<IUserService>(TYPES.UserService)
+      .to(UserService)
+      .inSingletonScope();
+    options
+      .bind<IConfigService>(TYPES.ConfigService)
+      .to(ConfigService)
+      .inSingletonScope();
     options.bind<App>(TYPES.Application).to(App);
   },
 );

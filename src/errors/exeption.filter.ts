@@ -9,7 +9,7 @@ import { HttpError } from './http-error.class';
 
 @injectable()
 export class ExeptionFilter implements IExeptionFilter {
-  constructor(@inject(TYPES.ILogger) private logger: ILogger) {}
+  constructor(@inject(TYPES.Logger) private logger: ILogger) {}
 
   catch(
     error: Error | HttpError,
@@ -19,7 +19,7 @@ export class ExeptionFilter implements IExeptionFilter {
   ): void {
     if (error instanceof HttpError) {
       this.logger.error(
-        `[${error.context}] Error ${error.statusCode} ${error.message}`,
+        `[${error?.context || ''}]: Error ${error.statusCode} ${error.message}`,
       );
       res.status(error.statusCode).send({ error: error.message });
     } else {
