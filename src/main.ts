@@ -7,8 +7,8 @@ import {
 import { App } from './app';
 import { ConfigService } from './config/config.service';
 import { IConfigService } from './config/config.service.interface';
-import { ExeptionFilter } from './errors/exeption.filter';
-import { IExeptionFilter } from './errors/exeption.filter.interface';
+import { ExceptionFilter } from './errors/exception.filter';
+import { IExceptionFilter } from './errors/exception.filter.interface';
 import { ILogger } from './logger/loger.interface';
 import { LoggerService } from './logger/logger.service';
 import { TYPES } from './types';
@@ -27,8 +27,8 @@ const appBindings = new ContainerModule(
   (options: ContainerModuleLoadOptions) => {
     options.bind<ILogger>(TYPES.Logger).to(LoggerService).inSingletonScope();
     options
-      .bind<IExeptionFilter>(TYPES.ExeptionFilter)
-      .to(ExeptionFilter)
+      .bind<IExceptionFilter>(TYPES.ExceptionFilter)
+      .to(ExceptionFilter)
       .inSingletonScope();
     options
       .bind<IUserController>(TYPES.UserController)

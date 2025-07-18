@@ -11,7 +11,7 @@ export { Router } from 'express';
 export abstract class BaseController {
   private readonly _router: Router;
 
-  constructor(private logger: ILogger) {
+  protected constructor(private logger: ILogger) {
     this._router = Router();
   }
 
@@ -41,6 +41,7 @@ export abstract class BaseController {
       const handler: RequestHandler = (req, res, next) => {
         route.cb.call(this, req, res, next);
       };
+
       const pipeline = middleware ? [...middleware, handler] : handler;
       this.router[route.method](route.path, pipeline);
     }

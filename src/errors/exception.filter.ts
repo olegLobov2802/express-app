@@ -4,11 +4,11 @@ import { inject, injectable } from 'inversify';
 import { ILogger } from '../logger/loger.interface';
 import { TYPES } from '../types';
 
-import { IExeptionFilter } from './exeption.filter.interface';
+import { IExceptionFilter } from './exception.filter.interface';
 import { HttpError } from './http-error.class';
 
 @injectable()
-export class ExeptionFilter implements IExeptionFilter {
+export class ExceptionFilter implements IExceptionFilter {
   constructor(@inject(TYPES.Logger) private logger: ILogger) {}
 
   catch(
