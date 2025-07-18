@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 
 import { BaseController } from '../common/base.controller';
+import { ValidateMiddleware } from '../common/validate.middleware';
 import { HttpError } from '../errors/http-error.class';
 import { ILogger } from '../logger/loger.interface';
 import { TYPES } from '../types';
@@ -29,6 +30,7 @@ export class UserController extends BaseController implements IUserController {
         path: '/register',
         cb: this.register,
         method: 'post',
+        middlewares: [new ValidateMiddleware(UserRegisterDto)],
       },
     ]);
   }

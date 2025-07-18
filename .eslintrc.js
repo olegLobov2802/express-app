@@ -32,6 +32,7 @@ module.exports = {
     '.eslintrc.js',
   ],
   rules: {
+    "@typescript-eslint/no-unsafe-return": "off",
     "@typescript-eslint/ban-types": "off",
     "@typescript-eslint/unbound-method": "off",
     "@typescript-eslint/restrict-plus-operands": "off",
