@@ -26,11 +26,13 @@
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "inversify": "^7.6.1",
+    "jsonwebtoken": "^9.0.2",
     "tslog": "^4.9.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "eslint": "^8.57.1",
