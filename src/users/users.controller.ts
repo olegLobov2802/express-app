@@ -18,7 +18,7 @@ export class UserController extends BaseController implements IUserController {
   constructor(
     @inject(TYPES.Logger) private loggerService: ILogger,
     @inject(TYPES.UserService) private userService: IUserService,
-    @inject(TYPES.ConfigService) private configeService: IConfigService,
+    @inject(TYPES.ConfigService) private configService: IConfigService,
   ) {
     super(loggerService);
 
@@ -57,6 +57,6 @@ export class UserController extends BaseController implements IUserController {
       return next(new HttpError(422, 'User already exists'));
     }
 
-    this.ok(res, { email: result.email });
+    this.ok(res, { email: result.email, id: result.id });
   }
 }

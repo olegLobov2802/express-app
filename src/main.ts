@@ -7,6 +7,7 @@ import {
 import { App } from './app';
 import { ConfigService } from './config/config.service';
 import { IConfigService } from './config/config.service.interface';
+import { PrismaService } from './database/prisma.service';
 import { ExceptionFilter } from './errors/exception.filter';
 import { IExceptionFilter } from './errors/exception.filter.interface';
 import { ILogger } from './logger/loger.interface';
@@ -16,7 +17,8 @@ import { IUserController } from './users/user.controller.interface';
 import { UserService } from './users/user.service';
 import { IUserService } from './users/user.service.interface';
 import { UserController } from './users/users.controller';
-import { PrismaService } from './database/prisma.service';
+import { UsersRepository } from './users/users.repository';
+import { IUsersRepository } from './users/users.repository.interface';
 
 export interface IBootstrapReturn {
   app: App;
@@ -45,6 +47,10 @@ const appBindings = new ContainerModule(
     options
       .bind<PrismaService>(TYPES.PrismaService)
       .to(PrismaService)
+      .inSingletonScope();
+    options
+      .bind<IUsersRepository>(TYPES.UsersRepository)
+      .to(UsersRepository)
       .inSingletonScope();
     options.bind<App>(TYPES.Application).to(App);
   },
