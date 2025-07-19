@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { sign } from 'jsonwebtoken';
 
+import { AuthGuard } from '../common/auth.guard';
 import { BaseController } from '../common/base.controller';
 import { ValidateMiddleware } from '../common/validate.middleware';
 import { IConfigService } from '../config/config.service.interface';
@@ -40,13 +41,14 @@ export class UserController extends BaseController implements IUserController {
         path: '/info',
         cb: this.info,
         method: 'get',
-        middlewares: [],
+        middlewares: [new AuthGuard()],
       },
     ]);
   }
 
-  info(req: Request, res: Response): void {
-    this.ok(res, { email: req.user });
+  async info(req: Request, res: Response): Promise<void> {
+    const userInfo = await this.userService.getUserInfo(req.user);
+    this.ok(res, { userInfo });
   }
 
   async login(
