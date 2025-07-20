@@ -12,8 +12,8 @@ import { TYPES } from '../types';
 
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
-import { IUserController } from './user.controller.interface';
-import { IUserService } from './user.service.interface';
+import { IUserController } from './users.controller.interface';
+import { IUserService } from './users.service.interface';
 
 @injectable()
 export class UserController extends BaseController implements IUserController {

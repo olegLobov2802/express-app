@@ -13,9 +13,9 @@ import { IExceptionFilter } from './errors/exception.filter.interface';
 import { ILogger } from './logger/loger.interface';
 import { LoggerService } from './logger/logger.service';
 import { TYPES } from './types';
-import { IUserController } from './users/user.controller.interface';
-import { UserService } from './users/user.service';
-import { IUserService } from './users/user.service.interface';
+import { IUserController } from './users/users.controller.interface';
+import { UsersService } from './users/users.service';
+import { IUserService } from './users/users.service.interface';
 import { UserController } from './users/users.controller';
 import { UsersRepository } from './users/users.repository';
 import { IUsersRepository } from './users/users.repository.interface';
@@ -38,7 +38,7 @@ const appBindings = new ContainerModule(
       .inSingletonScope();
     options
       .bind<IUserService>(TYPES.UserService)
-      .to(UserService)
+      .to(UsersService)
       .inSingletonScope();
     options
       .bind<IConfigService>(TYPES.ConfigService)

@@ -8,7 +8,7 @@ import { PrismaService } from './database/prisma.service';
 import { IExceptionFilter } from './errors/exception.filter.interface';
 import { ILogger } from './logger/loger.interface';
 import { TYPES } from './types';
-import { IUserController } from './users/user.controller.interface';
+import { IUserController } from './users/users.controller.interface';
 import { AuthMiddleware } from "./common/auth.middleware";
 
 @injectable()
