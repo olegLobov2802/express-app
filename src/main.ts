@@ -63,4 +63,4 @@ async function bootstrap(): Promise<IBootstrapReturn> {
   return { app, appContainer };
 }
 
-bootstrap();
+export const boot = bootstrap();
