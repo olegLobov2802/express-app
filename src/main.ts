@@ -13,12 +13,12 @@ import { IExceptionFilter } from './errors/exception.filter.interface';
 import { ILogger } from './logger/loger.interface';
 import { LoggerService } from './logger/logger.service';
 import { TYPES } from './types';
-import { IUserController } from './users/users.controller.interface';
-import { UsersService } from './users/users.service';
-import { IUserService } from './users/users.service.interface';
 import { UserController } from './users/users.controller';
+import { IUserController } from './users/users.controller.interface';
 import { UsersRepository } from './users/users.repository';
 import { IUsersRepository } from './users/users.repository.interface';
+import { UsersService } from './users/users.service';
+import { IUserService } from './users/users.service.interface';
 
 export interface IBootstrapReturn {
   app: App;

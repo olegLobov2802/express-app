@@ -12,7 +12,8 @@
     "lint:fix": "eslint ./src/** --fix",
     "prisma:init": "npx prisma init",
     "prisma:migrate": "npx prisma migrate dev",
-    "prisma:generate": "npx prisma generate"
+    "prisma:generate": "npx prisma generate",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
