@@ -4,7 +4,7 @@
 
 REST API на **Express 5 + TypeScript**
 
-Архитектура — **слоистая** с **Dependency Injection** (Inversify), **Prisma** (SQLite) и декларативной маршрутизацией через `BaseController`.
+Архитектура — **слоистая** с **Dependency Injection** (Inversify), **Prisma** (PostgreSQL) и декларативной маршрутизацией через `BaseController`.
 
 ## Структура каталогов
 
@@ -19,7 +19,8 @@ src/
 ├── errors/              # HttpError + глобальный ExceptionFilter
 ├── common/              # BaseController, middleware, guards
 └── users/               # Доменный модуль: controller → service → repository
-prisma/schema.prisma     # Модель UserModel, SQLite
+prisma/schema.prisma     # Модель UserModel, PostgreSQL
+docker-compose.yml       # PostgreSQL для локальной разработки
 tests/                   # E2E (supertest) и unit-тесты
 ```
 
@@ -45,7 +46,7 @@ flowchart TB
 
   subgraph data [Данные]
     repo["UsersRepository"]
-    prisma["PrismaService → SQLite"]
+    prisma["PrismaService → PostgreSQL"]
   end
 
   subgraph infra [Инфраструктура]
@@ -94,7 +95,7 @@ sequenceDiagram
   participant Controller
   participant Service
   participant Repo as Repository
-  participant DB as SQLite
+  participant DB as PostgreSQL
 
   Client->>AuthMW: HTTP request
   AuthMW->>AuthMW: Разбор JWT из Authorization (если есть)
@@ -148,7 +149,7 @@ sequenceDiagram
 ## База данных
 
 - Prisma schema: `prisma/schema.prisma` — модель `UserModel` (id, email, password, name).
-- SQLite: `file:./dev.db`.
+- PostgreSQL: `DATABASE_URL` в `.env` (см. `.env.example`).
 - Клиент генерируется в `generated/prisma`.
 - `PrismaService` — обёртка с `connect()` / `disconnect()`.
 
@@ -158,6 +159,7 @@ sequenceDiagram
 
 | Ключ | Назначение |
 |------|------------|
+| `DATABASE_URL` | Строка подключения к PostgreSQL |
 | `SECRET` | Секрет для подписи и проверки JWT |
 | `SALT` | Соль для bcrypt при хешировании пароля |
 

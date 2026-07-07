@@ -2,12 +2,14 @@
 
 REST API
 
-Стек: Express 5, TypeScript, Inversify, Prisma (SQLite), class-validator.
+Стек: Express 5, TypeScript, Inversify, Prisma (PostgreSQL), class-validator.
 
 ## Быстрый старт
 
 ```bash
 npm install
+cp .env.example .env
+npm run db:up
 npm run prisma:generate
 npm run prisma:migrate
 npm run dev
@@ -15,9 +17,12 @@ npm run dev
 
 Сервер запускается на `http://localhost:8000`.
 
-Перед запуском создайте файл `.env`:
+PostgreSQL поднимается через Docker Compose (`npm run db:up`). Остановить: `npm run db:down`.
+
+Перед запуском создайте файл `.env` (или скопируйте из `.env.example`):
 
 ```env
+DATABASE_URL=postgresql://express_app:express_app@localhost:5432/express_app
 SECRET=your-jwt-secret
 SALT=10
 ```
@@ -57,9 +62,11 @@ curl http://localhost:8000/users/info \
 
 ## Скрипты
 
-| Команда            | Описание                             |
-| ------------------ | ------------------------------------ |
-| `npm run dev`      | Запуск в режиме разработки (nodemon) |
+| Команда              | Описание                             |
+| -------------------- | ------------------------------------ |
+| `npm run db:up`      | Запуск PostgreSQL (Docker Compose)   |
+| `npm run db:down`    | Остановка PostgreSQL                 |
+| `npm run dev`        | Запуск в режиме разработки (nodemon) |
 | `npm run build`    | Сборка TypeScript                    |
 | `npm start`        | Запуск собранного приложения         |
 | `npm test`         | Unit-тесты                           |
