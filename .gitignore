@@ -7,4 +7,6 @@ swagger.json
 
 /generated/prisma
 /prisma/dev.db
+/prisma/dev.db-journal
 /coverage
+/.env
