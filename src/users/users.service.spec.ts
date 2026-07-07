@@ -5,6 +5,7 @@ import { IConfigService } from '../config/config.service.interface';
 import { TYPES } from '../types';
 
 import { User } from './user.entity';
+import { UserPublic } from './user.mapper';
 import { IUsersRepository } from './users.repository.interface';
 import { UsersService } from './users.service';
 import { IUserService } from './users.service.interface';
@@ -24,7 +25,8 @@ let configService: IConfigService;
 let usersRepository: IUsersRepository;
 let usersService: IUserService;
 
-let createdUser: UserModel | null;
+let storedUser: UserModel | null;
+let createdUser: UserPublic | null;
 
 beforeAll(() => {
   container.bind<IUserService>(TYPES.UserService).to(UsersService);
@@ -43,14 +45,19 @@ beforeAll(() => {
 describe('User service', () => {
   it('create user', async () => {
     configService.get = jest.fn().mockReturnValueOnce('1');
-    usersRepository.create = jest.fn().mockImplementationOnce(
-      (user: User): UserModel => ({
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        id: 1,
-      }),
-    );
+    usersRepository.find = jest.fn().mockResolvedValueOnce(null);
+    usersRepository.create = jest
+      .fn()
+      .mockImplementationOnce((user: User): UserModel => {
+        storedUser = {
+          name: user.name,
+          email: user.email,
+          password: user.password,
+          id: 1,
+        };
+
+        return storedUser;
+      });
 
     createdUser = await usersService.createUser({
       email: 'userMail@mail.com',
@@ -59,11 +66,30 @@ describe('User service', () => {
     });
 
     expect(createdUser?.id).toEqual(1);
-    expect(createdUser?.password).not.toEqual('userPassword');
+    expect(createdUser).toEqual({
+      id: 1,
+      email: 'userMail@mail.com',
+      name: 'UserName',
+    });
+    expect(createdUser).not.toHaveProperty('password');
+  });
+
+  it('create user - duplicate email', async () => {
+    usersRepository.create = jest.fn();
+    usersRepository.find = jest.fn().mockResolvedValueOnce(storedUser);
+
+    const result = await usersService.createUser({
+      email: 'userMail@mail.com',
+      name: 'AnotherUser',
+      password: 'anotherPassword',
+    });
+
+    expect(result).toBeNull();
+    expect(usersRepository.create).not.toHaveBeenCalled();
   });
 
   it('validateUser - success', async () => {
-    usersRepository.find = jest.fn().mockReturnValueOnce(createdUser);
+    usersRepository.find = jest.fn().mockReturnValueOnce(storedUser);
     const result = await usersService.validateUser({
       email: 'userMail@mail.com',
       password: 'userPassword',
@@ -73,7 +99,7 @@ describe('User service', () => {
   });
 
   it('validateUser - wrong password', async () => {
-    usersRepository.find = jest.fn().mockReturnValueOnce(createdUser);
+    usersRepository.find = jest.fn().mockReturnValueOnce(storedUser);
     const result = await usersService.validateUser({
       email: 'userMail@mail.com',
       password: '2',
@@ -90,5 +116,18 @@ describe('User service', () => {
     });
 
     expect(result).toBeFalsy();
+  });
+
+  it('getUserInfo - excludes password', async () => {
+    usersRepository.find = jest.fn().mockResolvedValueOnce(storedUser);
+
+    const result = await usersService.getUserInfo('userMail@mail.com');
+
+    expect(result).toEqual({
+      id: 1,
+      email: 'userMail@mail.com',
+      name: 'UserName',
+    });
+    expect(result).not.toHaveProperty('password');
   });
 });

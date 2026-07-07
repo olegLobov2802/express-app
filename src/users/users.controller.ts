@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
-import { sign } from 'jsonwebtoken';
+import { sign, SignOptions } from 'jsonwebtoken';
 
 import { AuthGuard } from '../common/auth.guard';
 import { BaseController } from '../common/base.controller';
@@ -63,7 +63,8 @@ export class UserController extends BaseController implements IUserController {
     }
 
     const secret = this.configService.get('SECRET');
-    const jwt = await this.signJWT(req.body.email, secret);
+    const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '7d';
+    const jwt = await this.signJWT(req.body.email, secret, expiresIn);
     this.ok(res, {
       login: 'success',
       jwt,
@@ -78,13 +79,22 @@ export class UserController extends BaseController implements IUserController {
     const result = await this.userService.createUser(req.body);
 
     if (!result) {
-      return next(new HttpError(422, 'User already exists'));
+      return next(new HttpError(422, 'Registration failed'));
     }
 
     this.ok(res, result);
   }
 
-  private signJWT(email: string, secret: string): Promise<string> {
+  private signJWT(
+    email: string,
+    secret: string,
+    expiresIn: string,
+  ): Promise<string> {
+    const options: SignOptions = {
+      algorithm: 'HS256',
+      expiresIn: expiresIn as SignOptions['expiresIn'],
+    };
+
     return new Promise<string>((resolve, reject) => {
       sign(
         {
@@ -92,13 +102,16 @@ export class UserController extends BaseController implements IUserController {
           iat: Math.floor(Date.now() / 1000),
         },
         secret,
-        {
-          algorithm: 'HS256',
-        },
+        options,
         (err, token) => {
           if (err) {
-            reject(err);
+            return reject(err);
           }
+
+          if (!token) {
+            return reject(new Error('Token generation failed'));
+          }
+
           resolve(token);
         },
       );
