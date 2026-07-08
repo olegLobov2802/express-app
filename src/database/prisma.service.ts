@@ -1,7 +1,7 @@
 import { inject, injectable } from 'inversify';
 
 import { PrismaClient } from '../../generated/prisma';
-import { ILogger } from '../logger/loger.interface';
+import { ILogger } from '../logger/logger.interface';
 import { TYPES } from '../types';
 
 @injectable()

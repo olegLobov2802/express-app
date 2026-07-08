@@ -46,12 +46,12 @@ export class UsersService implements IUserService {
     }
   }
 
-  async validateUser(dto: UserLoginDto): Promise<boolean> {
+  async validateUser(dto: UserLoginDto): Promise<UserPublic | null> {
     const { email, password } = dto;
 
     const existedUser = await this.usersRepository.find(email);
     if (!existedUser) {
-      return false;
+      return null;
     }
 
     const newUser = new User(
@@ -60,11 +60,17 @@ export class UsersService implements IUserService {
       existedUser.password,
     );
 
-    return await newUser.comparePassword(password);
+    const isValid = await newUser.comparePassword(password);
+
+    if (!isValid) {
+      return null;
+    }
+
+    return toUserPublic(existedUser);
   }
 
-  async getUserInfo(email: string): Promise<UserPublic | null> {
-    const user = await this.usersRepository.find(email);
+  async getUserInfo(userId: number): Promise<UserPublic | null> {
+    const user = await this.usersRepository.findById(userId);
 
     if (!user) {
       return null;

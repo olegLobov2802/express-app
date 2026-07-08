@@ -99,7 +99,7 @@ sequenceDiagram
 
   Client->>AuthMW: HTTP request
   AuthMW->>AuthMW: Разбор JWT из Authorization (если есть)
-  AuthMW->>RouteMW: req.user = email
+  AuthMW->>RouteMW: req.userId = sub
   RouteMW->>RouteMW: ValidateMiddleware / AuthGuard
   RouteMW->>Controller: handler
   Controller->>Service: бизнес-логика
@@ -111,7 +111,7 @@ sequenceDiagram
 
 ### Глобальный middleware
 
-`AuthMiddleware` (`src/common/auth.middleware.ts`) — **не блокирует** неавторизованные запросы. Если в заголовке `Authorization: Bearer <token>` есть валидный JWT, записывает `req.user = email`. Защита конкретных эндпоинтов — через `AuthGuard`.
+`AuthMiddleware` (`src/common/auth.middleware.ts`) — **не блокирует** неавторизованные запросы. Если в заголовке `Authorization: Bearer <token>` есть валидный JWT, записывает `req.userId` из claim `sub`. Защита конкретных эндпоинтов — через `AuthGuard`.
 
 ### Маршруты модуля users
 
@@ -121,7 +121,7 @@ sequenceDiagram
 |-------|------|------------|----------|
 | POST | `/users/register` | `ValidateMiddleware(UserRegisterDto)` | Создание пользователя |
 | POST | `/users/login` | `ValidateMiddleware(UserLoginDto)` | Проверка пароля, выдача JWT |
-| GET | `/users/info` | `AuthGuard` | Профиль по `req.user` |
+| GET | `/users/info` | `AuthGuard` | Профиль по `req.userId` |
 
 Валидация DTO — `class-validator` + `class-transformer` в `ValidateMiddleware`. Ошибки валидации возвращают статус `422`.
 
@@ -158,8 +158,8 @@ sequenceDiagram
 ## Аутентификация
 
 - **Регистрация**: пароль хешируется в `User.setPassword()` с cost factor из `BCRYPT_ROUNDS` (`.env`).
-- **Логин**: `UsersService.validateUser()` сравнивает пароль через bcrypt; контроллер подписывает JWT (`HS256`, payload: `{ email, iat }`, секрет `JWT_SECRET`).
-- **Защищённые маршруты**: `AuthMiddleware` (глобально) разбирает токен, `AuthGuard` (на маршруте) проверяет наличие `req.user`.
+- **Логин**: `UsersService.validateUser()` сравнивает пароль через bcrypt; контроллер подписывает JWT (`HS256`, payload: `{ sub, email, iat, exp }`, секрет `JWT_SECRET`).
+- **Защищённые маршруты**: `AuthMiddleware` (глобально) разбирает токен, `AuthGuard` (на маршруте) проверяет наличие `req.userId`.
 
 ## База данных
 

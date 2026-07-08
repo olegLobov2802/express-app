@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import { sign, SignOptions } from 'jsonwebtoken';
 
+import { AccessTokenPayload } from '../auth/jwt-payload';
 import { AuthGuard } from '../common/auth.guard';
 import { BaseController } from '../common/base.controller';
 import { RateLimitMiddleware } from '../common/rate-limit.middleware';
@@ -9,7 +10,7 @@ import { ValidateMiddleware } from '../common/validate.middleware';
 import { IConfigService } from '../config/config.service.interface';
 import { ErrorCode } from '../errors/api-error.response';
 import { HttpError } from '../errors/http-error.class';
-import { ILogger } from '../logger/loger.interface';
+import { ILogger } from '../logger/logger.interface';
 import { TYPES } from '../types';
 
 import { UserLoginDto } from './dto/user-login.dto';
@@ -56,7 +57,13 @@ export class UserController extends BaseController implements IUserController {
   }
 
   async info(req: Request, res: Response): Promise<void> {
-    const userInfo = await this.userService.getUserInfo(req.user);
+    const { userId } = req;
+
+    if (userId === undefined) {
+      return;
+    }
+
+    const userInfo = await this.userService.getUserInfo(userId);
     this.ok(res, { userInfo });
   }
 
@@ -65,9 +72,9 @@ export class UserController extends BaseController implements IUserController {
     res: Response,
     next: NextFunction,
   ): Promise<void> {
-    const result = await this.userService.validateUser(req.body);
+    const user = await this.userService.validateUser(req.body);
 
-    if (!result) {
+    if (!user) {
       return next(
         new HttpError(401, 'error auth', { code: ErrorCode.AUTH_ERROR }),
       );
@@ -75,7 +82,11 @@ export class UserController extends BaseController implements IUserController {
 
     const jwtSecret = this.configService.get('JWT_SECRET');
     const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '7d';
-    const jwt = await this.signJWT(req.body.email, jwtSecret, expiresIn);
+    const jwt = await this.signJWT(
+      { sub: user.id, email: user.email },
+      jwtSecret,
+      expiresIn,
+    );
     this.ok(res, {
       login: 'success',
       jwt,
@@ -101,7 +112,7 @@ export class UserController extends BaseController implements IUserController {
   }
 
   private signJWT(
-    email: string,
+    payload: AccessTokenPayload,
     secret: string,
     expiresIn: string,
   ): Promise<string> {
@@ -113,7 +124,8 @@ export class UserController extends BaseController implements IUserController {
     return new Promise<string>((resolve, reject) => {
       sign(
         {
-          email,
+          sub: payload.sub,
+          email: payload.email,
           iat: Math.floor(Date.now() / 1000),
         },
         secret,

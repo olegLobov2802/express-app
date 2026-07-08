@@ -16,6 +16,7 @@ const ConfigServiceMock: IConfigService = {
 
 const UsersRepositoryMock: IUsersRepository = {
   find: jest.fn(),
+  findById: jest.fn(),
   create: jest.fn(),
 };
 
@@ -95,7 +96,11 @@ describe('User service', () => {
       password: 'userPassword',
     });
 
-    expect(result).toBeTruthy();
+    expect(result).toEqual({
+      id: 1,
+      email: 'userMail@mail.com',
+      name: 'UserName',
+    });
   });
 
   it('validateUser - wrong password', async () => {
@@ -105,7 +110,7 @@ describe('User service', () => {
       password: '2',
     });
 
-    expect(result).toBeFalsy();
+    expect(result).toBeNull();
   });
 
   it('validateUser - wrong user', async () => {
@@ -115,13 +120,13 @@ describe('User service', () => {
       password: '2',
     });
 
-    expect(result).toBeFalsy();
+    expect(result).toBeNull();
   });
 
   it('getUserInfo - excludes password', async () => {
-    usersRepository.find = jest.fn().mockResolvedValueOnce(storedUser);
+    usersRepository.findById = jest.fn().mockResolvedValueOnce(storedUser);
 
-    const result = await usersService.getUserInfo('userMail@mail.com');
+    const result = await usersService.getUserInfo(1);
 
     expect(result).toEqual({
       id: 1,

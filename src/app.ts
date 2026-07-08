@@ -9,7 +9,7 @@ import { AuthMiddleware } from './common/auth.middleware';
 import { IConfigService } from './config/config.service.interface';
 import { PrismaService } from './database/prisma.service';
 import { IExceptionFilter } from './errors/exception.filter.interface';
-import { ILogger } from './logger/loger.interface';
+import { ILogger } from './logger/logger.interface';
 import { TYPES } from './types';
 import { IUserController } from './users/users.controller.interface';
 

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 
-import { ILogger } from '../logger/loger.interface';
+import { ILogger } from '../logger/logger.interface';
 import { TYPES } from '../types';
 
 import { fromHttpError, internalServerError } from './api-error.response';

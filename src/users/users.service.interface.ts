@@ -4,6 +4,6 @@ import { UserPublic } from './user.mapper';
 
 export interface IUserService {
   createUser(dto: UserRegisterDto): Promise<UserPublic | null>;
-  validateUser(dto: UserLoginDto): Promise<boolean>;
-  getUserInfo(email: string): Promise<UserPublic | null>;
+  validateUser(dto: UserLoginDto): Promise<UserPublic | null>;
+  getUserInfo(userId: number): Promise<UserPublic | null>;
 }

@@ -1,3 +1,4 @@
+import { decode, JwtPayload } from 'jsonwebtoken';
 import supertest from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 
@@ -20,28 +21,34 @@ describe('Users e2e', () => {
       password: 'userPassword',
     });
     expect(res.statusCode).toBe(422);
-    expect(res.body).toEqual({
+
+    const body = res.body as {
       error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Validation failed',
-        details: expect.arrayContaining([
-          expect.objectContaining({ property: 'name' }),
-        ]),
-      },
-    });
+        code: string;
+        message: string;
+        details: Array<{ property: string }>;
+      };
+    };
+
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(body.error.message).toBe('Validation failed');
+    expect(body.error.details.some((d) => d.property === 'name')).toBe(true);
   });
 
   it('Login - success', async () => {
-    // const agent = supertest.agent(application.app);
-    const res = (await agent.post('/users/login').send({
+    const res = await agent.post('/users/login').send({
       email: 'userMail@mail.com',
       password: 'userPassword',
-    })) as {
-      body?: {
-        jwt?: string;
-      };
-    };
-    expect(res?.body?.jwt).not.toBeUndefined();
+    });
+
+    expect(res.body).toHaveProperty('jwt');
+
+    const jwt = (res.body as { jwt: string }).jwt;
+    const payload = decode(jwt) as JwtPayload | null;
+
+    expect(payload).toBeTruthy();
+    expect(payload?.email).toBe('userMail@mail.com');
+    expect(typeof payload?.sub).toBe('number');
   });
   it('Login - error', async () => {
     const res = await agent.post('/users/login').send({
