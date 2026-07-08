@@ -1,6 +1,8 @@
 import { Server } from 'http';
 
+import cors from 'cors';
 import express from 'express';
+import helmet from 'helmet';
 import { inject, injectable } from 'inversify';
 
 import { AuthMiddleware } from './common/auth.middleware';
@@ -29,9 +31,32 @@ export class App {
   }
 
   useMiddleware(): void {
+    this.app.use(helmet());
+    this.useCors();
     this.app.use(express.json());
     const authMiddleware = new AuthMiddleware(this.configService.get('SECRET'));
     this.app.use(authMiddleware.execute.bind(authMiddleware));
+  }
+
+  private useCors(): void {
+    const corsOrigin = this.configService.get('CORS_ORIGIN');
+
+    if (!corsOrigin) {
+      return;
+    }
+
+    const origins = corsOrigin
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+
+    this.app.use(
+      cors({
+        origin: origins,
+        methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+      }),
+    );
   }
 
   useRoutes(): void {
