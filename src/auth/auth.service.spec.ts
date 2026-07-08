@@ -107,12 +107,16 @@ beforeEach(() => {
 describe('AuthService', () => {
   it('issueTokenPair returns access and refresh tokens', async () => {
     refreshTokenRepository.create = jest.fn().mockResolvedValue(undefined);
+    refreshTokenRepository.revokeAllForUser = jest
+      .fn()
+      .mockResolvedValue(undefined);
 
     const result = await authService.issueTokenPair(1, 'user@mail.com');
 
     expect(result.accessToken).toBe('access-token');
     expect(result.expiresIn).toBe(3600);
     expect(result.refreshToken).toContain('.');
+    expect(refreshTokenRepository.revokeAllForUser).toHaveBeenCalledWith(1);
     expect(refreshTokenRepository.create).toHaveBeenCalledTimes(1);
     expect(jwtService.signAccessToken).toHaveBeenCalledWith({
       sub: 1,

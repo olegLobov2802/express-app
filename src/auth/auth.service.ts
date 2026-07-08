@@ -33,6 +33,8 @@ export class AuthService implements IAuthService {
   ) {}
 
   async issueTokenPair(userId: number, email: string): Promise<TokenPair> {
+    await this.refreshTokenRepository.revokeAllForUser(userId);
+
     const { token: accessToken, expiresIn } =
       await this.jwtService.signAccessToken({ sub: userId, email });
     const refreshToken = await this.createRefreshToken(userId);
