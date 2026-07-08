@@ -4,6 +4,7 @@ import { sign, SignOptions } from 'jsonwebtoken';
 
 import { AuthGuard } from '../common/auth.guard';
 import { BaseController } from '../common/base.controller';
+import { RateLimitMiddleware } from '../common/rate-limit.middleware';
 import { ValidateMiddleware } from '../common/validate.middleware';
 import { IConfigService } from '../config/config.service.interface';
 import { HttpError } from '../errors/http-error.class';
@@ -24,18 +25,25 @@ export class UserController extends BaseController implements IUserController {
   ) {
     super(loggerService);
 
+    const authRateLimit = new RateLimitMiddleware({
+      windowMs:
+        Number(this.configService.get('RATE_LIMIT_WINDOW_MS')) ||
+        15 * 60 * 1000,
+      limit: Number(this.configService.get('RATE_LIMIT_MAX')) || 10,
+    });
+
     this.bindRoutes([
       {
         path: '/login',
         cb: this.login,
         method: 'post',
-        middlewares: [new ValidateMiddleware(UserLoginDto)],
+        middlewares: [authRateLimit, new ValidateMiddleware(UserLoginDto)],
       },
       {
         path: '/register',
         cb: this.register,
         method: 'post',
-        middlewares: [new ValidateMiddleware(UserRegisterDto)],
+        middlewares: [authRateLimit, new ValidateMiddleware(UserRegisterDto)],
       },
       {
         path: '/info',
