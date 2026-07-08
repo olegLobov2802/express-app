@@ -5,6 +5,7 @@ import { ILogger } from '../logger/loger.interface';
 import { TYPES } from '../types';
 
 import { IConfigService } from './config.service.interface';
+import { validateConfig } from './config.validator';
 
 @injectable()
 export class ConfigService implements IConfigService {
@@ -15,10 +16,12 @@ export class ConfigService implements IConfigService {
 
     if (result?.error) {
       this.loggerService.error('[ConfigService]: failed to read the .env file');
-    } else {
-      this.loggerService.log('[ConfigService]: Configuration .env loaded');
-      this.config = result.parsed;
+      throw new Error('[ConfigService]: failed to read the .env file');
     }
+
+    this.config = result.parsed ?? {};
+    validateConfig(this.config);
+    this.loggerService.log('[ConfigService]: Configuration .env loaded');
   }
 
   get(key: string): string {

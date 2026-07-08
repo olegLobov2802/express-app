@@ -34,7 +34,9 @@ export class App {
     this.app.use(helmet());
     this.useCors();
     this.app.use(express.json());
-    const authMiddleware = new AuthMiddleware(this.configService.get('SECRET'));
+    const authMiddleware = new AuthMiddleware(
+      this.configService.get('JWT_SECRET'),
+    );
     this.app.use(authMiddleware.execute.bind(authMiddleware));
   }
 

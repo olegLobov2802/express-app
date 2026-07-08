@@ -23,8 +23,8 @@ PostgreSQL поднимается через Docker Compose (`npm run db:up`). �
 
 ```env
 DATABASE_URL=postgresql://express_app:express_app@localhost:5432/express_app
-SECRET=your-jwt-secret
-SALT=10
+JWT_SECRET=your-jwt-secret
+BCRYPT_ROUNDS=10
 ```
 
 ## API

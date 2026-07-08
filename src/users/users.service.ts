@@ -27,9 +27,9 @@ export class UsersService implements IUserService {
       return null;
     }
 
-    const salt = this.configService.get('SALT');
+    const bcryptRounds = Number(this.configService.get('BCRYPT_ROUNDS'));
     const newUser = new User(email, name);
-    await newUser.setPassword(password, Number(salt));
+    await newUser.setPassword(password, bcryptRounds);
 
     try {
       const createdUser = await this.usersRepository.create(newUser);

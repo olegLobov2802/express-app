@@ -70,9 +70,9 @@ export class UserController extends BaseController implements IUserController {
       return next(new HttpError(401, 'error auth'));
     }
 
-    const secret = this.configService.get('SECRET');
+    const jwtSecret = this.configService.get('JWT_SECRET');
     const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '7d';
-    const jwt = await this.signJWT(req.body.email, secret, expiresIn);
+    const jwt = await this.signJWT(req.body.email, jwtSecret, expiresIn);
     this.ok(res, {
       login: 'success',
       jwt,

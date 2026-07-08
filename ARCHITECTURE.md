@@ -142,8 +142,8 @@ sequenceDiagram
 
 ## Аутентификация
 
-- **Регистрация**: пароль хешируется в `User.setPassword()` с солью из `SALT` (`.env`).
-- **Логин**: `UsersService.validateUser()` сравнивает пароль через bcrypt; контроллер подписывает JWT (`HS256`, payload: `{ email, iat }`, секрет `SECRET`).
+- **Регистрация**: пароль хешируется в `User.setPassword()` с cost factor из `BCRYPT_ROUNDS` (`.env`).
+- **Логин**: `UsersService.validateUser()` сравнивает пароль через bcrypt; контроллер подписывает JWT (`HS256`, payload: `{ email, iat }`, секрет `JWT_SECRET`).
 - **Защищённые маршруты**: `AuthMiddleware` (глобально) разбирает токен, `AuthGuard` (на маршруте) проверяет наличие `req.user`.
 
 ## База данных
@@ -160,8 +160,8 @@ sequenceDiagram
 | Ключ | Назначение |
 |------|------------|
 | `DATABASE_URL` | Строка подключения к PostgreSQL |
-| `SECRET` | Секрет для подписи и проверки JWT |
-| `SALT` | Соль для bcrypt при хешировании пароля |
+| `JWT_SECRET` | Секрет для подписи и проверки JWT |
+| `BCRYPT_ROUNDS` | Cost factor bcrypt при хешировании пароля |
 
 ## Тестирование
 
