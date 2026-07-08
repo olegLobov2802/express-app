@@ -5,6 +5,7 @@ import express from 'express';
 import helmet from 'helmet';
 import { inject, injectable } from 'inversify';
 
+import { IAuthController } from './auth/auth.controller.interface';
 import { AuthMiddleware } from './common/auth.middleware';
 import { IConfigService } from './config/config.service.interface';
 import { PrismaService } from './database/prisma.service';
@@ -22,6 +23,7 @@ export class App {
   constructor(
     @inject(TYPES.Logger) private logger: ILogger,
     @inject(TYPES.UserController) private userController: IUserController,
+    @inject(TYPES.AuthController) private authController: IAuthController,
     @inject(TYPES.ExceptionFilter) private exceptionFilter: IExceptionFilter,
     @inject(TYPES.ConfigService) private configService: IConfigService,
     @inject(TYPES.PrismaService) private prismaService: PrismaService,
@@ -63,6 +65,7 @@ export class App {
 
   useRoutes(): void {
     this.app.use('/users', this.userController.router);
+    this.app.use('/users', this.authController.router);
   }
 
   useExceptionFilters(): void {

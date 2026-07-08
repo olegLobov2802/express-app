@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
-import { sign, SignOptions } from 'jsonwebtoken';
 
-import { AccessTokenPayload } from '../auth/jwt-payload';
+import { IAuthService } from '../auth/auth.service.interface';
 import { AuthGuard } from '../common/auth.guard';
 import { BaseController } from '../common/base.controller';
 import { RateLimitMiddleware } from '../common/rate-limit.middleware';
@@ -23,6 +22,7 @@ export class UserController extends BaseController implements IUserController {
   constructor(
     @inject(TYPES.Logger) private loggerService: ILogger,
     @inject(TYPES.UserService) private userService: IUserService,
+    @inject(TYPES.AuthService) private authService: IAuthService,
     @inject(TYPES.ConfigService) private configService: IConfigService,
   ) {
     super(loggerService);
@@ -80,17 +80,11 @@ export class UserController extends BaseController implements IUserController {
       );
     }
 
-    const jwtSecret = this.configService.get('JWT_SECRET');
-    const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '7d';
-    const jwt = await this.signJWT(
-      { sub: user.id, email: user.email },
-      jwtSecret,
-      expiresIn,
+    const tokenPair = await this.authService.issueTokenPair(
+      user.id,
+      user.email,
     );
-    this.ok(res, {
-      login: 'success',
-      jwt,
-    });
+    this.ok(res, tokenPair);
   }
 
   async register(
@@ -109,39 +103,5 @@ export class UserController extends BaseController implements IUserController {
     }
 
     this.ok(res, result);
-  }
-
-  private signJWT(
-    payload: AccessTokenPayload,
-    secret: string,
-    expiresIn: string,
-  ): Promise<string> {
-    const options: SignOptions = {
-      algorithm: 'HS256',
-      expiresIn: expiresIn as SignOptions['expiresIn'],
-    };
-
-    return new Promise<string>((resolve, reject) => {
-      sign(
-        {
-          sub: payload.sub,
-          email: payload.email,
-          iat: Math.floor(Date.now() / 1000),
-        },
-        secret,
-        options,
-        (err, token) => {
-          if (err) {
-            return reject(err);
-          }
-
-          if (!token) {
-            return reject(new Error('Token generation failed'));
-          }
-
-          resolve(token);
-        },
-      );
-    });
   }
 }

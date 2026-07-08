@@ -5,6 +5,14 @@ import {
 } from 'inversify';
 
 import { App } from './app';
+import { AuthController } from './auth/auth.controller';
+import { IAuthController } from './auth/auth.controller.interface';
+import { AuthService } from './auth/auth.service';
+import { IAuthService } from './auth/auth.service.interface';
+import { JwtService } from './auth/jwt.service';
+import { IJwtService } from './auth/jwt.service.interface';
+import { RefreshTokenRepository } from './auth/refresh-token.repository';
+import { IRefreshTokenRepository } from './auth/refresh-token.repository.interface';
 import { ConfigService } from './config/config.service';
 import { IConfigService } from './config/config.service.interface';
 import { PrismaService } from './database/prisma.service';
@@ -51,6 +59,22 @@ const appBindings = new ContainerModule(
     options
       .bind<IUsersRepository>(TYPES.UsersRepository)
       .to(UsersRepository)
+      .inSingletonScope();
+    options
+      .bind<IRefreshTokenRepository>(TYPES.RefreshTokenRepository)
+      .to(RefreshTokenRepository)
+      .inSingletonScope();
+    options
+      .bind<IJwtService>(TYPES.JwtService)
+      .to(JwtService)
+      .inSingletonScope();
+    options
+      .bind<IAuthService>(TYPES.AuthService)
+      .to(AuthService)
+      .inSingletonScope();
+    options
+      .bind<IAuthController>(TYPES.AuthController)
+      .to(AuthController)
       .inSingletonScope();
     options.bind<App>(TYPES.Application).to(App);
   },

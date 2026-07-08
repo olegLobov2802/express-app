@@ -17,6 +17,8 @@ describe('validateConfig', () => {
       validateConfig({
         ...validConfig,
         JWT_EXPIRES_IN: '7d',
+        JWT_ACCESS_EXPIRES_IN: '1h',
+        JWT_REFRESH_EXPIRES_IN: '30d',
         RATE_LIMIT_WINDOW_MS: '900000',
         RATE_LIMIT_MAX: '10',
       }),
@@ -54,6 +56,12 @@ describe('validateConfig', () => {
     expect(() =>
       validateConfig({ ...validConfig, JWT_EXPIRES_IN: 'forever' }),
     ).toThrow('JWT_EXPIRES_IN must be a duration');
+  });
+
+  it('rejects invalid JWT_ACCESS_EXPIRES_IN', () => {
+    expect(() =>
+      validateConfig({ ...validConfig, JWT_ACCESS_EXPIRES_IN: 'forever' }),
+    ).toThrow('JWT_ACCESS_EXPIRES_IN must be a duration');
   });
 
   it('rejects invalid rate limit values', () => {

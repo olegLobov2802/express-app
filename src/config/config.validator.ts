@@ -53,10 +53,27 @@ export function validateConfig(
   }
 
   const jwtExpiresIn = config.JWT_EXPIRES_IN?.trim();
+  const jwtAccessExpiresIn = config.JWT_ACCESS_EXPIRES_IN?.trim();
+  const jwtRefreshExpiresIn = config.JWT_REFRESH_EXPIRES_IN?.trim();
 
   if (jwtExpiresIn && !JWT_EXPIRES_IN_PATTERN.test(jwtExpiresIn)) {
     throw new Error(
       '[ConfigService]: JWT_EXPIRES_IN must be a duration like 7d, 1h, or seconds',
+    );
+  }
+
+  if (jwtAccessExpiresIn && !JWT_EXPIRES_IN_PATTERN.test(jwtAccessExpiresIn)) {
+    throw new Error(
+      '[ConfigService]: JWT_ACCESS_EXPIRES_IN must be a duration like 1h, 15m, or seconds',
+    );
+  }
+
+  if (
+    jwtRefreshExpiresIn &&
+    !JWT_EXPIRES_IN_PATTERN.test(jwtRefreshExpiresIn)
+  ) {
+    throw new Error(
+      '[ConfigService]: JWT_REFRESH_EXPIRES_IN must be a duration like 7d, 30d, or seconds',
     );
   }
 
