@@ -15,12 +15,20 @@ beforeAll(async () => {
 
 describe('Users e2e', () => {
   it('Register - error', async () => {
-    // const agent = supertest.agent(application.app);
     const res = await agent.post('/users/register').send({
       email: 'userMail@mail.com',
       password: 'userPassword',
     });
     expect(res.statusCode).toBe(422);
+    expect(res.body).toEqual({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Validation failed',
+        details: expect.arrayContaining([
+          expect.objectContaining({ property: 'name' }),
+        ]),
+      },
+    });
   });
 
   it('Login - success', async () => {
@@ -36,12 +44,17 @@ describe('Users e2e', () => {
     expect(res?.body?.jwt).not.toBeUndefined();
   });
   it('Login - error', async () => {
-    // const agent = supertest.agent(application.app);
     const res = await agent.post('/users/login').send({
       email: 'userMail@mail.com',
       password: '1234',
     });
     expect(res?.statusCode).toBe(401);
+    expect(res.body).toEqual({
+      error: {
+        code: 'AUTH_ERROR',
+        message: 'error auth',
+      },
+    });
   });
   it('Info - success', async () => {
     // const agent = supertest.agent(application.app);
@@ -65,9 +78,14 @@ describe('Users e2e', () => {
     expect(res?.body?.userInfo?.email).toBe('userMail@mail.com');
   });
   it('Info - error', async () => {
-    // const agent = supertest.agent(application.app);
     const res = await agent.get('/users/info').set('Authorization', 'Bearer 1');
     expect(res.statusCode).toBe(401);
+    expect(res.body).toEqual({
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'The user is not authorized',
+      },
+    });
   });
 });
 

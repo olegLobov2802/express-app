@@ -7,6 +7,7 @@ import { BaseController } from '../common/base.controller';
 import { RateLimitMiddleware } from '../common/rate-limit.middleware';
 import { ValidateMiddleware } from '../common/validate.middleware';
 import { IConfigService } from '../config/config.service.interface';
+import { ErrorCode } from '../errors/api-error.response';
 import { HttpError } from '../errors/http-error.class';
 import { ILogger } from '../logger/loger.interface';
 import { TYPES } from '../types';
@@ -67,7 +68,9 @@ export class UserController extends BaseController implements IUserController {
     const result = await this.userService.validateUser(req.body);
 
     if (!result) {
-      return next(new HttpError(401, 'error auth'));
+      return next(
+        new HttpError(401, 'error auth', { code: ErrorCode.AUTH_ERROR }),
+      );
     }
 
     const jwtSecret = this.configService.get('JWT_SECRET');
@@ -87,7 +90,11 @@ export class UserController extends BaseController implements IUserController {
     const result = await this.userService.createUser(req.body);
 
     if (!result) {
-      return next(new HttpError(422, 'Registration failed'));
+      return next(
+        new HttpError(422, 'Registration failed', {
+          code: ErrorCode.REGISTRATION_FAILED,
+        }),
+      );
     }
 
     this.ok(res, result);

@@ -4,6 +4,7 @@ import { inject, injectable } from 'inversify';
 import { ILogger } from '../logger/loger.interface';
 import { TYPES } from '../types';
 
+import { fromHttpError, internalServerError } from './api-error.response';
 import { IExceptionFilter } from './exception.filter.interface';
 import { HttpError } from './http-error.class';
 
@@ -21,10 +22,10 @@ export class ExceptionFilter implements IExceptionFilter {
       this.logger.error(
         `[${error?.context || ''}]: Error ${error.statusCode} ${error.message}`,
       );
-      res.status(error.statusCode).send({ error: error.message });
+      res.status(error.statusCode).send(fromHttpError(error));
     } else {
       this.logger.error(`[${error.message}]`);
-      res.status(500).send({ error: error.message });
+      res.status(500).send(internalServerError());
     }
   }
 }

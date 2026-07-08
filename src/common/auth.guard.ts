@@ -1,5 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
+import { ErrorCode } from '../errors/api-error.response';
+import { HttpError } from '../errors/http-error.class';
+
 import { IMiddleware } from './middleware.interface';
 
 export class AuthGuard implements IMiddleware {
@@ -7,8 +10,11 @@ export class AuthGuard implements IMiddleware {
     if (req.user) {
       return next();
     }
-    res.status(401).send({
-      error: 'The user is not authorized',
-    });
+
+    next(
+      new HttpError(401, 'The user is not authorized', {
+        code: ErrorCode.UNAUTHORIZED,
+      }),
+    );
   }
 }

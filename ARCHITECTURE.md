@@ -127,9 +127,24 @@ sequenceDiagram
 
 ### Обработка ошибок
 
-- Контроллер передаёт ошибки через `next(new HttpError(status, message))`.
-- `ExceptionFilter` — последний middleware: `HttpError` → соответствующий статус, прочие ошибки → `500`.
-- `AuthGuard` отвечает `401` напрямую, минуя `ExceptionFilter`.
+Все ошибки API возвращаются в едином формате:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Validation failed",
+    "details": [{ "property": "password", "constraints": { "...": "..." } }]
+  }
+}
+```
+
+Коды: `VALIDATION_ERROR`, `UNAUTHORIZED`, `AUTH_ERROR`, `REGISTRATION_FAILED`, `INTERNAL_SERVER_ERROR`.
+
+- Контроллер и middleware передают ошибки через `next(new HttpError(status, message, { code }))`.
+- `ValidateMiddleware` — `422` с `VALIDATION_ERROR` и `details` по полям DTO.
+- `AuthGuard` — `401` с `UNAUTHORIZED` через `ExceptionFilter`.
+- `ExceptionFilter` — последний middleware: `HttpError` → соответствующий статус; неожиданные ошибки → `500` с generic message (без утечки `error.message`).
 
 ## Dependency Injection
 
