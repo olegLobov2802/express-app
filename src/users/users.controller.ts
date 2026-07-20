@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 
+import { sendAuthTokens } from '../auth/auth-token-delivery';
 import { IAuthService } from '../auth/auth.service.interface';
 import { AuthGuard } from '../common/auth.guard';
 import { BaseController } from '../common/base.controller';
@@ -84,7 +85,7 @@ export class UserController extends BaseController implements IUserController {
       user.id,
       user.email,
     );
-    this.ok(res, tokenPair);
+    this.ok(res, sendAuthTokens(res, tokenPair, this.configService));
   }
 
   async register(

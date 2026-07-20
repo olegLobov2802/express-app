@@ -8,9 +8,11 @@ import { IConfigService } from '../config/config.service.interface';
 import { ILogger } from '../logger/logger.interface';
 import { TYPES } from '../types';
 
+import { clearRefreshTokenCookie, sendAuthTokens } from './auth-token-delivery';
 import { IAuthController } from './auth.controller.interface';
 import { IAuthService } from './auth.service.interface';
 import { RefreshDto } from './dto/refresh.dto';
+import { ResolveRefreshTokenMiddleware } from './resolve-refresh-token.middleware';
 
 @injectable()
 export class AuthController extends BaseController implements IAuthController {
@@ -33,13 +35,21 @@ export class AuthController extends BaseController implements IAuthController {
         path: '/refresh',
         cb: this.refresh,
         method: 'post',
-        middlewares: [authRateLimit, new ValidateMiddleware(RefreshDto)],
+        middlewares: [
+          authRateLimit,
+          new ResolveRefreshTokenMiddleware(),
+          new ValidateMiddleware(RefreshDto),
+        ],
       },
       {
         path: '/logout',
         cb: this.logout,
         method: 'post',
-        middlewares: [authRateLimit, new ValidateMiddleware(RefreshDto)],
+        middlewares: [
+          authRateLimit,
+          new ResolveRefreshTokenMiddleware(),
+          new ValidateMiddleware(RefreshDto),
+        ],
       },
     ]);
   }
@@ -51,7 +61,7 @@ export class AuthController extends BaseController implements IAuthController {
   ): Promise<void> {
     try {
       const tokenPair = await this.authService.refresh(req.body.refreshToken);
-      this.ok(res, tokenPair);
+      this.ok(res, sendAuthTokens(res, tokenPair, this.configService));
     } catch (error) {
       next(error);
     }
@@ -64,6 +74,7 @@ export class AuthController extends BaseController implements IAuthController {
   ): Promise<void> {
     try {
       await this.authService.revoke(req.body.refreshToken);
+      clearRefreshTokenCookie(res, this.configService);
       this.ok(res, { logout: 'success' });
     } catch (error) {
       next(error);

@@ -21,7 +21,7 @@ export class JwtService implements IJwtService {
     const expiresIn =
       this.configService.get('JWT_ACCESS_EXPIRES_IN') ||
       this.configService.get('JWT_EXPIRES_IN') ||
-      '1h';
+      '15m';
     const expiresInSeconds = parseDurationToSeconds(expiresIn);
 
     const options: SignOptions = {

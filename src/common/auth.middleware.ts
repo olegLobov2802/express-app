@@ -8,24 +8,32 @@ import { IMiddleware } from './middleware.interface';
 export class AuthMiddleware implements IMiddleware {
   constructor(private secret: string) {}
   execute(req: Request, res: Response, next: NextFunction): void {
-    if (req?.headers?.authorization) {
-      verify(
-        req.headers.authorization.split(' ')?.[1],
-        this.secret,
-        (err, payload) => {
-          if (!err && payload) {
-            const userId = parseUserIdFromJwtPayload(payload);
+    const token = this.getToken(req);
 
-            if (userId !== null) {
-              req.userId = userId;
-            }
+    if (token) {
+      verify(token, this.secret, (err, payload) => {
+        if (!err && payload) {
+          const userId = parseUserIdFromJwtPayload(payload);
+
+          if (userId !== null) {
+            req.userId = userId;
           }
+        }
 
-          next();
-        },
-      );
+        next();
+      });
     } else {
       next();
     }
+  }
+
+  private getToken(req: Request): string | undefined {
+    const authorization = req.headers.authorization;
+
+    if (authorization?.startsWith('Bearer ')) {
+      return authorization.split(' ')[1];
+    }
+
+    return undefined;
   }
 }

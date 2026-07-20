@@ -3,18 +3,20 @@ import supertest from 'supertest';
 import TestAgent from 'supertest/lib/agent';
 
 import { App } from '../src/app';
-import { boot } from '../src/main';
 
 let application: App;
 let agent: TestAgent;
 
-type TokenPairResponse = {
+type AccessTokenResponse = {
   accessToken: string;
-  refreshToken: string;
   expiresIn: number;
 };
 
 beforeAll(async () => {
+  process.env.PORT = '0';
+  process.env.AUTH_COOKIE_SECURE = 'false';
+
+  const { boot } = await import('../src/main');
   const { app } = await boot;
   application = app;
   agent = supertest.agent(application.app);
@@ -53,11 +55,12 @@ describe('Users e2e', () => {
       password: 'userPassword',
     });
 
-    const body = res.body as TokenPairResponse;
+    const body = res.body as AccessTokenResponse;
 
     expect(body).toHaveProperty('accessToken');
-    expect(body).toHaveProperty('refreshToken');
+    expect(body).not.toHaveProperty('refreshToken');
     expect(typeof body.expiresIn).toBe('number');
+    expect(getRefreshCookie(res.headers)).toMatch(/^refreshToken=/);
 
     const payload = decode(body.accessToken) as JwtPayload | null;
 
@@ -65,6 +68,7 @@ describe('Users e2e', () => {
     expect(payload?.email).toBe('userMail@mail.com');
     expect(typeof payload?.sub).toBe('number');
   });
+
   it('Login - error', async () => {
     const res = await agent.post('/users/login').send({
       email: 'userMail@mail.com',
@@ -78,24 +82,19 @@ describe('Users e2e', () => {
       },
     });
   });
+
   it('Info - success', async () => {
-    const login = (await agent.post('/users/login').send({
+    const login = await agent.post('/users/login').send({
       email: 'userMail@mail.com',
       password: 'userPassword',
-    })) as {
-      body: TokenPairResponse;
-    };
-    const res = (await agent
+    });
+    const res = await agent
       .get('/users/info')
-      .set('Authorization', `Bearer ${login.body.accessToken}`)) as {
-      body?: {
-        userInfo?: {
-          email?: string;
-        };
-      };
-    };
-    expect(res?.body?.userInfo?.email).toBe('userMail@mail.com');
+      .set('Authorization', `Bearer ${login.body.accessToken}`);
+
+    expect(res.body?.userInfo?.email).toBe('userMail@mail.com');
   });
+
   it('Info - error', async () => {
     const res = await agent.get('/users/info').set('Authorization', 'Bearer 1');
     expect(res.statusCode).toBe(401);
@@ -107,41 +106,62 @@ describe('Users e2e', () => {
     });
   });
 
-  it('Refresh - success', async () => {
-    const login = (await agent.post('/users/login').send({
+  it('Refresh - success via cookie', async () => {
+    const session = supertest.agent(application.app);
+    const login = await session.post('/users/login').send({
       email: 'userMail@mail.com',
       password: 'userPassword',
-    })) as { body: TokenPairResponse };
-
-    const refresh = await agent.post('/users/refresh').send({
-      refreshToken: login.body.refreshToken,
     });
+    const oldCookie = getRefreshCookie(login.headers);
+
+    const refresh = await session.post('/auth/refresh').send({});
 
     expect(refresh.statusCode).toBe(200);
 
-    const body = refresh.body as TokenPairResponse;
+    const body = refresh.body as AccessTokenResponse;
 
     expect(body.accessToken).toBeTruthy();
-    expect(body.refreshToken).toBeTruthy();
-    expect(body.refreshToken).not.toBe(login.body.refreshToken);
+    expect(body).not.toHaveProperty('refreshToken');
     expect(typeof body.expiresIn).toBe('number');
+    expect(getRefreshCookie(refresh.headers)).toBeTruthy();
+    expect(getRefreshCookie(refresh.headers)).not.toBe(oldCookie);
+  });
+
+  it('Refresh - accepts X-Refresh-Token header', async () => {
+    const login = await agent.post('/users/login').send({
+      email: 'userMail@mail.com',
+      password: 'userPassword',
+    });
+    const refreshToken = parseRefreshTokenValue(getRefreshCookie(login.headers));
+
+    const refresh = await agent
+      .post('/auth/refresh')
+      .set('X-Refresh-Token', refreshToken)
+      .send({});
+
+    expect(refresh.statusCode).toBe(200);
+    expect(refresh.body.accessToken).toBeTruthy();
+    expect(refresh.body).not.toHaveProperty('refreshToken');
   });
 
   it('Refresh - rejects reused token', async () => {
-    const login = (await agent.post('/users/login').send({
+    const session = supertest.agent(application.app);
+    const login = await session.post('/users/login').send({
       email: 'userMail@mail.com',
       password: 'userPassword',
-    })) as { body: TokenPairResponse };
-
-    const firstRefresh = await agent.post('/users/refresh').send({
-      refreshToken: login.body.refreshToken,
     });
+    const oldRefreshToken = parseRefreshTokenValue(
+      getRefreshCookie(login.headers),
+    );
+
+    const firstRefresh = await session.post('/auth/refresh').send({});
 
     expect(firstRefresh.statusCode).toBe(200);
 
-    const secondRefresh = await agent.post('/users/refresh').send({
-      refreshToken: login.body.refreshToken,
-    });
+    const secondRefresh = await agent
+      .post('/auth/refresh')
+      .set('X-Refresh-Token', oldRefreshToken)
+      .send({});
 
     expect(secondRefresh.statusCode).toBe(401);
     expect(secondRefresh.body).toEqual({
@@ -153,26 +173,49 @@ describe('Users e2e', () => {
   });
 
   it('Logout - success and refresh fails after', async () => {
-    const login = (await agent.post('/users/login').send({
+    const session = supertest.agent(application.app);
+    await session.post('/users/login').send({
       email: 'userMail@mail.com',
       password: 'userPassword',
-    })) as { body: TokenPairResponse };
-
-    const logout = await agent.post('/users/logout').send({
-      refreshToken: login.body.refreshToken,
     });
+
+    const logout = await session.post('/auth/logout').send({});
 
     expect(logout.statusCode).toBe(200);
     expect(logout.body).toEqual({ logout: 'success' });
 
-    const refresh = await agent.post('/users/refresh').send({
-      refreshToken: login.body.refreshToken,
-    });
+    const refresh = await session.post('/auth/refresh').send({});
 
-    expect(refresh.statusCode).toBe(401);
+    expect(refresh.statusCode).toBe(422);
   });
 });
 
 afterAll(() => {
   application.close();
+  delete process.env.PORT;
+  delete process.env.AUTH_COOKIE_SECURE;
 });
+
+function getSetCookie(headers: Record<string, unknown>): string[] {
+  const setCookie = headers['set-cookie'];
+
+  if (Array.isArray(setCookie)) {
+    return setCookie;
+  }
+
+  return typeof setCookie === 'string' ? [setCookie] : [];
+}
+
+function getRefreshCookie(headers: Record<string, unknown>): string | undefined {
+  return getSetCookie(headers).find((cookie) =>
+    cookie.startsWith('refreshToken='),
+  );
+}
+
+function parseRefreshTokenValue(setCookie: string | undefined): string {
+  if (!setCookie) {
+    throw new Error('refreshToken cookie is missing');
+  }
+
+  return setCookie.split(';')[0].slice('refreshToken='.length);
+}

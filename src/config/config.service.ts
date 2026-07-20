@@ -19,7 +19,14 @@ export class ConfigService implements IConfigService {
       throw new Error('[ConfigService]: failed to read the .env file');
     }
 
-    this.config = result.parsed ?? {};
+    this.config = {
+      ...(result.parsed ?? {}),
+      ...Object.fromEntries(
+        Object.entries(process.env).filter(
+          (entry): entry is [string, string] => entry[1] !== undefined,
+        ),
+      ),
+    };
     validateConfig(this.config);
     this.loggerService.log('[ConfigService]: Configuration .env loaded');
   }

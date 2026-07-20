@@ -1,5 +1,6 @@
 import { Server } from 'http';
 
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -29,12 +30,13 @@ export class App {
     @inject(TYPES.PrismaService) private prismaService: PrismaService,
   ) {
     this.app = express();
-    this.port = 8000;
+    this.port = this.resolvePort();
   }
 
   useMiddleware(): void {
     this.app.use(helmet());
     this.useCors();
+    this.app.use(cookieParser());
     this.app.use(express.json());
     const authMiddleware = new AuthMiddleware(
       this.configService.get('JWT_SECRET'),
@@ -58,14 +60,15 @@ export class App {
       cors({
         origin: origins,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Refresh-Token'],
+        credentials: true,
       }),
     );
   }
 
   useRoutes(): void {
     this.app.use('/users', this.userController.router);
-    this.app.use('/users', this.authController.router);
+    this.app.use('/auth', this.authController.router);
   }
 
   useExceptionFilters(): void {
@@ -83,5 +86,11 @@ export class App {
 
   public close(): void {
     this.server.close();
+  }
+
+  private resolvePort(): number {
+    const port = Number(this.configService.get('PORT'));
+
+    return Number.isInteger(port) && port >= 0 ? port : 8000;
   }
 }

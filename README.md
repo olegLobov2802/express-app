@@ -23,17 +23,38 @@ PostgreSQL поднимается через Docker Compose (`npm run db:up`). �
 
 ```env
 DATABASE_URL=postgresql://express_app:express_app@localhost:5432/express_app
-JWT_SECRET=your-jwt-secret
+JWT_SECRET=change-me-to-a-long-random-secret
 BCRYPT_ROUNDS=10
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+AUTH_COOKIE_SECURE=false
 ```
 
 ## API
 
-| Метод | Путь              | Описание                      | Авторизация                     |
-| ----- | ----------------- | ----------------------------- | ------------------------------- |
-| POST  | `/users/register` | Регистрация пользователя      | —                               |
-| POST  | `/users/login`    | Логин, возвращает JWT         | —                               |
-| GET   | `/users/info`     | Профиль текущего пользователя | `Authorization: Bearer <token>` |
+| Метод | Путь              | Описание                              | Авторизация                                      |
+| ----- | ----------------- | ------------------------------------- | ------------------------------------------------ |
+| POST  | `/users/register` | Регистрация пользователя              | —                                                |
+| POST  | `/users/login`    | Логин, access в JSON + refresh cookie | —                                                |
+| POST  | `/auth/refresh`   | Обновление access (ротация refresh)   | refresh cookie, body или `X-Refresh-Token`       |
+| POST  | `/auth/logout`    | Выход, отзыв refresh                  | refresh cookie, body или `X-Refresh-Token`       |
+| GET   | `/users/info`     | Профиль текущего пользователя         | `Authorization: Bearer <access>`                 |
+
+### Ответ login / refresh
+
+```json
+{
+  "accessToken": "<jwt>",
+  "expiresIn": 900
+}
+```
+
+- Access — в JSON; клиент хранит в памяти и шлёт `Authorization: Bearer`.
+- Refresh — HttpOnly cookie `refreshToken` с `Path=/auth` (на `/auth/refresh` и `/auth/logout`). Для Postman можно ещё передать refresh в body или `X-Refresh-Token`.
+
+Для SPA: `CORS_ORIGIN=...` и `credentials: 'include'` на refresh/logout.
+
+Подробнее — в [ARCHITECTURE.md](./ARCHITECTURE.md#аутентификация).
 
 ### Примеры
 
@@ -53,11 +74,32 @@ curl -X POST http://localhost:8000/users/login \
   -d '{"email":"user@mail.com","password":"password"}'
 ```
 
+**Refresh (cookie / browser)**
+
+```bash
+curl -X POST http://localhost:8000/auth/refresh \
+  -b 'refreshToken=<refresh-token>'
+```
+
+**Refresh (заголовок)**
+
+```bash
+curl -X POST http://localhost:8000/auth/refresh \
+  -H "X-Refresh-Token: <refresh-token>"
+```
+
+**Logout**
+
+```bash
+curl -X POST http://localhost:8000/auth/logout \
+  -b 'refreshToken=<refresh-token>'
+```
+
 **Профиль**
 
 ```bash
 curl http://localhost:8000/users/info \
-  -H "Authorization: Bearer <jwt-token>"
+  -H "Authorization: Bearer <access-token>"
 ```
 
 ## Скрипты

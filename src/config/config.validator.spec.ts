@@ -17,8 +17,9 @@ describe('validateConfig', () => {
       validateConfig({
         ...validConfig,
         JWT_EXPIRES_IN: '7d',
-        JWT_ACCESS_EXPIRES_IN: '1h',
+        JWT_ACCESS_EXPIRES_IN: '15m',
         JWT_REFRESH_EXPIRES_IN: '30d',
+        AUTH_COOKIE_SECURE: 'true',
         RATE_LIMIT_WINDOW_MS: '900000',
         RATE_LIMIT_MAX: '10',
       }),
@@ -68,5 +69,11 @@ describe('validateConfig', () => {
     expect(() =>
       validateConfig({ ...validConfig, RATE_LIMIT_MAX: '0' }),
     ).toThrow('RATE_LIMIT_MAX must be a positive integer');
+  });
+
+  it('rejects invalid cookie secure flag', () => {
+    expect(() =>
+      validateConfig({ ...validConfig, AUTH_COOKIE_SECURE: 'yes' }),
+    ).toThrow('AUTH_COOKIE_SECURE must be either true or false');
   });
 });

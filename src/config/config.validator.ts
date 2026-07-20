@@ -82,6 +82,7 @@ export function validateConfig(
     'RATE_LIMIT_WINDOW_MS',
   );
   validateOptionalPositiveInt(config.RATE_LIMIT_MAX, 'RATE_LIMIT_MAX');
+  validateOptionalBoolean(config.AUTH_COOKIE_SECURE, 'AUTH_COOKIE_SECURE');
 }
 
 function validateOptionalPositiveInt(
@@ -96,5 +97,15 @@ function validateOptionalPositiveInt(
 
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`[ConfigService]: ${key} must be a positive integer`);
+  }
+}
+
+function validateOptionalBoolean(value: string | undefined, key: string): void {
+  if (value === undefined || value.trim() === '') {
+    return;
+  }
+
+  if (!['true', 'false'].includes(value)) {
+    throw new Error(`[ConfigService]: ${key} must be either true or false`);
   }
 }
