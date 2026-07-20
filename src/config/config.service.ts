@@ -14,7 +14,10 @@ export class ConfigService implements IConfigService {
   constructor(@inject(TYPES.Logger) private loggerService: ILogger) {
     const result: DotenvConfigOutput = config();
 
-    if (result?.error) {
+    if (
+      result.error &&
+      (result.error as NodeJS.ErrnoException).code !== 'ENOENT'
+    ) {
       this.loggerService.error('[ConfigService]: failed to read the .env file');
       throw new Error('[ConfigService]: failed to read the .env file');
     }
@@ -28,7 +31,7 @@ export class ConfigService implements IConfigService {
       ),
     };
     validateConfig(this.config);
-    this.loggerService.log('[ConfigService]: Configuration .env loaded');
+    this.loggerService.log('[ConfigService]: Configuration loaded');
   }
 
   get(key: string): string {

@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.git
+.env
+.idea
+.vscode
+tmp
+*.md
+!README.md
+tests
+tsconfig.tsbuildinfo

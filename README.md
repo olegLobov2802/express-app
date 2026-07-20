@@ -4,7 +4,7 @@ REST API
 
 Стек: Express 5, TypeScript, Inversify, Prisma (PostgreSQL), class-validator.
 
-## Быстрый старт
+## Быстрый старт (разработка)
 
 ```bash
 npm install
@@ -18,6 +18,21 @@ npm run dev
 Сервер запускается на `http://localhost:8000`.
 
 PostgreSQL поднимается через Docker Compose (`npm run db:up`). Остановить: `npm run db:down`.
+
+## Запуск в Docker (полный стек)
+
+Приложение и PostgreSQL в контейнерах — для продакшена или единой среды:
+
+```bash
+cp .env.example .env   # отредактируйте JWT_SECRET
+npm run docker:up
+```
+
+Сервер: `http://localhost:8000`. Миграции применяются автоматически при старте контейнера.
+
+Остановить: `npm run docker:down`. Логи: `npm run docker:logs`.
+
+Если БД уже использовалась локально и миграции конфликтуют, сбросьте volume: `docker compose --profile full down -v` (удалит данные PostgreSQL).
 
 Перед запуском создайте файл `.env` (или скопируйте из `.env.example`):
 
@@ -104,11 +119,14 @@ curl http://localhost:8000/users/info \
 
 ## Скрипты
 
-| Команда              | Описание                             |
-| -------------------- | ------------------------------------ |
-| `npm run db:up`      | Запуск PostgreSQL (Docker Compose)   |
-| `npm run db:down`    | Остановка PostgreSQL                 |
-| `npm run dev`        | Запуск в режиме разработки (nodemon) |
+| Команда              | Описание                                      |
+| -------------------- | --------------------------------------------- |
+| `npm run db:up`      | Запуск только PostgreSQL (для `npm run dev`)  |
+| `npm run db:down`    | Остановка PostgreSQL                          |
+| `npm run docker:up`  | Полный стек: app + PostgreSQL (сборка образа) |
+| `npm run docker:down`| Остановка полного стека                       |
+| `npm run docker:logs`| Логи контейнера приложения                    |
+| `npm run dev`        | Запуск в режиме разработки (nodemon)          |
 | `npm run build`    | Сборка TypeScript                    |
 | `npm start`        | Запуск собранного приложения         |
 | `npm test`         | Unit-тесты                           |

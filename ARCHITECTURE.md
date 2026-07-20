@@ -21,7 +21,7 @@ src/
 ├── auth/                # JWT, refresh tokens, refresh cookie
 └── users/               # Доменный модуль: controller → service → repository
 prisma/schema.prisma     # UserModel, RefreshToken
-docker-compose.yml       # PostgreSQL для локальной разработки
+docker-compose.yml       # PostgreSQL; полный стек — npm run docker:up
 tests/                   # E2E (supertest)
 ```
 

@@ -1,7 +1,7 @@
 {
   "name": "express_app",
   "version": "1.0.0",
-  "main": "./dist/main.ts",
+  "main": "./dist/main.js",
   "type": "commonjs",
   "scripts": {
     "start": "node ./dist/main.js",
@@ -14,8 +14,11 @@
     "prisma:migrate": "npx prisma migrate",
     "prisma:generate": "npx prisma generate",
     "prisma:studio": "npx prisma studio",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose stop postgres",
+    "docker:up": "docker compose --profile full up -d --build",
+    "docker:down": "docker compose --profile full down",
+    "docker:logs": "docker compose logs -f app",
     "test": "jest",
     "test:e2e": "jest --config jest.e2e.config.ts --coverage"
   },
